@@ -21,7 +21,7 @@ const list = glob.sync('*')  // 遍历当前目录
 let rootName = path.basename(process.cwd())
 if (list.length) {
   if (list.filter( name => {
-    const fileName = path.resolve(process().cwd(), path.join('.', name))
+    const fileName = path.resolve(process.cwd(), path.join('.', name))
     const isDir = fs.stat(fileName).isDirectory()
     return name.indexOf(projectName) !== -1 && isDir
   }).length !== 0) {
