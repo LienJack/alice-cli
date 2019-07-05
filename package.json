@@ -1,0 +1,35 @@
+{
+  "name": "alice-cli",
+  "version": "0.0.1",
+  "description": "快速生成模板",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "alice": "bin/alice",
+    "alice-init": "bin/alice-init"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LienJack/alice-cli.git"
+  },
+  "author": "lien",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LienJack/alice-cli/issues"
+  },
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "commander": "^2.19.0",
+    "download-git-repo": "^1.1.0",
+    "inquirer": "^6.2.2",
+    "ora": "^3.2.0"
+  },
+  "homepage": "https://github.com/LienJack/alice-cli#readme",
+  "devDependencies": {
+    "commander": "^2.20.0",
+    "glob": "^7.1.4",
+    "inquirer": "^6.4.1"
+  }
+}

@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+// 交互式命令行
+const inquirer = require('inquirer')
+// 修改控制台字符串的样式
+const chalk = require('chalk')
+// node 内置文件模块
+const fs = require('fs')
+const path = require('path')
+// 模板目录
+const tplobjPath = path.resolve(__dirname,"../template.json")
+const tplobj = require(tplobjPath)
+
+let question = [
+  {
+    name: 'name',
+    type: 'input',
+    message: "请输入模板名称",
+    validate (val) {
+      if (val === '') {
+        return "名字不能为空"
+      } else if (tplobj[val]) {
+        return '模板已经存在'
+      } else {
+        return true
+      }
+    }
+  },
+  {
+    name: 'url',
+    type: "input",
+    message: "请输入模板地址",
+    validate (val) {
+      if (val === '')  return 'url不能为空'
+      return true
+    } 
+  }
+]
+
+inquirer
+  .prompt(question).then( answers => {
+    let { name, url } = answers
+    tplobj[name] = url.repace(/[\u0000-\u0019]/g, '')
+    fs.writeFile(tplobjPath, JSON.stringify(tplobj), 'uft-8', err => {
+      if (err) console.log(err)
+    })
+    // console.log(answers)
+    console.log('\n')
+    console.log('添加模板成功')
+  })
