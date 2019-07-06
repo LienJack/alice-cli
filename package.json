@@ -29,7 +29,13 @@
   "homepage": "https://github.com/LienJack/alice-cli#readme",
   "devDependencies": {
     "commander": "^2.20.0",
+    "download-git-repo": "^1.1.0",
     "glob": "^7.1.4",
-    "inquirer": "^6.4.1"
+    "handlebars": "^4.1.2",
+    "inquirer": "^6.4.1",
+    "latest-version": "^5.1.0",
+    "metalsmith": "^2.3.0",
+    "rimraf": "^2.6.3",
+    "wrap-ansi": "^6.0.0"
   }
 }
