@@ -7,6 +7,8 @@ const dowload = require('../lib/download')
 const generator = require('../lib/generator')
 const inquirer = require('inquirer')
 const latestVersion = require('latest-version')
+
+const download = require('download-git-repo')
 program
   .usage('<project-name>')
   .parse(process.argv)
@@ -54,19 +56,18 @@ console.log(next)
 next && go ()
 
 function go () {
-  console.log('go')
-  // console.log(path.resolve(process.cwd(), path.join('.', rootName)))
+  let config
   next
     .then(projectRoot  => {
       if (projectRoot !== '.') {
         fs.mkdirSync(projectName)
       }
+      // return dowload(rootName)
       return dowload(rootName)
         .then(target => {
-          // console.log(target)
           console.log('模板下载成功')
           return {
-            name: projectName,
+            name: projectRoot,
             root: projectRoot,
             downloadTemp: target
           }
@@ -76,7 +77,8 @@ function go () {
         })
     })
     .then(context => {
-      console.log('context',context)
+      config = context
+      // fs.copyFileSync(context.downloadTemp, './')
       return inquirer.prompt([
         {
           name: 'projectName',
@@ -93,15 +95,23 @@ function go () {
         }
       ])
     })
-    // .then(answers => {
-    //   return {
-    //     ...context,
-    //     metadata: {
-    //       ...answers
-    //     }
-    //   }
-    // })
-    // .then(context => {
-    //   console.log(context)
-    // })
+    .then(answers => {
+      return {
+        metadata: {
+          ...answers
+        },
+        src: config.downloadTemp,
+        dest: config.root
+      }
+    })
+    .then(context => {
+      // console.log(context)
+      return generator(context)
+    })
+    .then(context => {
+      console.log('创建成功:)')
+    }).catch(err => {
+      console.error(`创建失败：${err.message}`)
+    }) 
+    
 }

@@ -1,7 +1,7 @@
 {
   "name": "alice-cli",
-  "version": "0.0.1",
-  "description": "快速生成模板",
+  "version": "脚手架",
+  "description": "快速生成项目",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
