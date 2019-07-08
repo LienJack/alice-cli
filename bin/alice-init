@@ -7,8 +7,8 @@ const dowload = require('../lib/download')
 const generator = require('../lib/generator')
 const inquirer = require('inquirer')
 const latestVersion = require('latest-version')
-
-const download = require('download-git-repo')
+const chalk = require('chalk')
+const logSymbols = require('log-symbols')
 program
   .usage('<project-name>')
   .parse(process.argv)
@@ -109,9 +109,11 @@ function go () {
       return generator(context)
     })
     .then(context => {
-      console.log('创建成功:)')
-    }).catch(err => {
-      console.error(`创建失败：${err.message}`)
+      console.log(logSymbols.success, chalk.green('创建成功:)'))
+      console.log()
+      console.log(chalk.green('cd ' + config.root + '\nnpm install\nnpm run dev'))
+    }).catch(error => {
+      console.log(logSymbols.error, chalk.red(`创建失败：${error.message}`))
     }) 
     
 }
