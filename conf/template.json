@@ -1,0 +1,26 @@
+{
+  "vue": {
+    "name": "基于vue项目",
+    "value": "vue",
+    "git": "https://github.com/LienJack/vue-template-cli.git",
+    "options": {}
+  },
+  "react": {
+    "name": "基于react",
+    "value": "react",
+    "git": "https://github.com/LienJack/template-react.git",
+    "options": {}
+  },
+  "electron-react": {
+    "name": "基于electron + react",
+    "value": "electron-react",
+    "git": "https://github.com/LienJack/templates-react-electron.git",
+    "options": {}
+  },
+ "typscript-react": {
+  "name": "基于typscript + react",
+  "value": "typscript-react",
+  "git": "https://github.com/cli-template-build/tsx-app.git",
+  "options": {}
+ }
+}

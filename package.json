@@ -39,6 +39,7 @@
     "latest-version": "^5.1.0",
     "log-symbols": "^3.0.0",
     "metalsmith": "^2.3.0",
+    "minimatch": "^3.0.4",
     "nodegit": "^0.24.3",
     "ora": "^3.4.0",
     "rimraf": "^2.6.3",
