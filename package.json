@@ -1,5 +1,5 @@
 {
-  "name": "61tpl-cli",
+  "name": "alice-cli",
   "version": "0.0.15",
   "description": "一套快速生成react.js、vue.js、electron、typescript 项目的脚手架",
   "main": "index.js",
