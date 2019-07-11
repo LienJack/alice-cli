@@ -1,26 +1,65 @@
 {
   "vue": {
-    "name": "基于vue项目",
+    "name": "基于vue 2项目",
     "value": "vue",
     "git": "https://github.com/LienJack/vue-template-cli.git",
-    "options": {}
+    "options": [
+      {
+        "type": "confirm",
+        "name": "mobile",
+        "message": "是否移动端自适应？"
+      },
+      {
+        "type": "confirm",
+        "name": "weixin",
+        "message": "是否使用配置微信？"
+      },
+      {
+        "type": "confirm",
+        "name": "vux",
+        "message": "是否使用vux？"
+      }
+    ]
   },
   "react": {
-    "name": "基于react",
+    "name": "基于react 16",
     "value": "react",
     "git": "https://github.com/LienJack/template-react.git",
-    "options": {}
+    "options": [
+      {
+        "type": "confirm",
+        "message": "是否移动端自适应？",
+        "name": "mobile"
+      },
+      {
+        "type": "confirm",
+        "message": "是否使用redux？",
+        "name": "redux"
+      }
+    ]
   },
   "electron-react": {
     "name": "基于electron + react",
     "value": "electron-react",
     "git": "https://github.com/LienJack/templates-react-electron.git",
-    "options": {}
+    "options": []
   },
  "typscript-react": {
   "name": "基于typscript + react",
   "value": "typscript-react",
   "git": "https://github.com/cli-template-build/tsx-app.git",
-  "options": {}
+  "options": []
+ },
+ "typscript-env": {
+   "name": "快速生成typscript环境，用于做实验",
+   "value": "typscript-env",
+   "git": "https://github.com/LienJack/typescript-env-template",
+   "options": []
+ },
+ "es6-env": {
+  "name": "快速生成es6+环境，用于做实验",
+  "value": "es6-env",
+  "git": "https://github.com/LienJack/es6.git",
+  "options": []
  }
 }

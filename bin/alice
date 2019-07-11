@@ -1,22 +1,8 @@
 #!/usr/bin/env node
 const program = require('commander')
 
-// 定义当前版本
-// 定义使用方法
-// 编写四个指令
-// program
-//   .version(require('../package').version)
-//   .usage('<command> [options]')
-//   .command('add', '新建模板')
-//   .command('delete', '删除模板')
-//   .command('list', '展示全部模板')
-//   .command('init', '初始化项目')
-  
-// // 解析命令行参数
-// program.parse(process.argv)
-
 program
-  .version('1.0.0')
+  .version(require('../package').version)
 	.usage('<command> [项目名称]')
 	.command('init', '创建新项目')
 	.parse(process.argv)

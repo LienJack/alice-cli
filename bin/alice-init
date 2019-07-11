@@ -1,250 +1,199 @@
 #!/usr/bin/env node
-const program = require('commander')
-const path = require('path')
-const fs = require('fs')
-const glob = require('glob') 
-const dowload = require('../lib/download')
-const generator = require('../lib/generator')
-const inquirer = require('inquirer')
-const latestVersion = require('latest-version')
-const chalk = require('chalk')
-const logSymbols = require('log-symbols')
-const child_process = require('child_process')
+const program = require("commander");
+const path = require("path");
+const fs = require("fs");
+const glob = require("glob");
+const dowload = require("../lib/download");
+const generator = require("../lib/generator");
+const inquirer = require("inquirer");
+const latestVersion = require("latest-version");
+const chalk = require("chalk");
+const logSymbols = require("log-symbols");
+const templateConfig = require("../conf/template.json");
+const configDefalut = require("../conf/index");
+const spawn = require('child_process').spawn
 const ora = require('ora')
-const templateConfig = require('../conf/template.json')
-const configDefalut = require('../conf/index')
-program
-  .usage('<project-name>')
-  .parse(process.argv)
+program.usage("<project-name>").parse(process.argv);
 
 // 根据输入，获取项目名称
-let projectName = program.args[0]
-if (!projectName) {  // project-name 必填
+let projectName = program.args[0];
+if (!projectName) {
+  // project-name 必填
   // 相当于执行命令的--help选项，显示help信息，这是commander内置的一个命令选项
-  program.help() 
-  return
+  program.help();
+  return;
 }
-let rootName = path.basename(process.cwd())
-function mkdir () {
-  return new Promise((resolve, reject) => {
-    const list = glob.sync('*')  // 遍历当前目录
-    let next = undefined
-    // let rootName = path.basename(process.cwd())
-    if (list.length) {
-      if (list.filter( name => {
-        const fileName = path.resolve(process.cwd(), path.join('.', name))
-        const isDir = fs.statSync(fileName).isDirectory()
-        return name.indexOf(projectName) !== -1 && isDir
-      }).length !== 0) {
-        reject(`项目${projectName}已经存在`)
-      }
-      resolve(projectName)
-    } else if (rootName === projectName) {
-      next = inquirer.prompt([
-        {
-          name: 'buildInCurrent',
-          message: "当前目录为空，且目录名称和项目名称相同，是否直接在当前目录下创建新项目",
-          type: 'confirm',
-          default: true,
-        }
-      ]).then(answer => {
-        resolve(answer.buildInCurrent ? '.' : projectName)
-      })
-    } else {
-      resolve(projectName)
-    }
-  })
-}
-// 当前目录为空，如果当前目录的名称和project-name一样，则直接在当前目录下创建工程，否则，在当前目录下创建以project-name作为名称的目录作为工程的根目录
-// 当前目录不为空，如果目录中不存在与project-name同名的目录，则创建以project-name作为名称的目录作为工程的根目录，否则提示项目已经存在，结束命令执行。
-// const list = glob.sync('*')  // 遍历当前目录
-// let next = undefined
-// let rootName = path.basename(process.cwd())
-// if (list.length) {
-//   if (list.filter( name => {
-//     const fileName = path.resolve(process.cwd(), path.join('.', name))
-//     const isDir = fs.statSync(fileName).isDirectory()
-//     return name.indexOf(projectName) !== -1 && isDir
-//   }).length !== 0) {
-//     console.log(`项目${projectName}已经存在`)
-//     return
-//   }
-//   next = Promise.resolve(projectName)
-//   // rootName = projectName
-// } else if (rootName === projectName) {
-//   next = inquirer.prompt([
-//     {
-//       name: 'buildInCurrent',
-//       message: "当前目录为空，且目录名称和项目名称相同，是否直接在当前目录下创建新项目",
-//       type: 'confirm',
-//       default: true,
-//     }
-//   ]).then(answer => {
-//     return Promise.resolve(answer.buildInCurrent ? '.' : projectName)
-//   })
-// } else {
-//   next = Promise.resolve(projectName)
-// }
-// next && go ()
-
-async function init () {
+let rootName = path.basename(process.cwd());
+// 项目初始化
+main();
+/**
+ * 主进程
+ */
+async function main() {
   try {
-    let projectRoot = await mkdir()
-    await go(projectRoot)
-    console.log(logSymbols.success, chalk.green('创建成功:)'))
+    console.log('检测版本')
+    let isUpate = await checkVersion()
+    console.log(isUpate)
+    if (isUpate) await updateCli()
+    console.log('创建路径')
+    let projectRoot = await mkdir();
+    let { git, templateValue } = await selectTemplate();
+    await render(projectRoot, git, templateValue);
+    afterBuild();
   } catch (err) {
-    console.log(logSymbols.error, chalk.red(`创建失败：${err.message}`))
+    console.log(logSymbols.error, chalk.red(`创建失败：${err.message}`));
   }
 }
-init()
-
-function go (projectRoot) {
+/**
+ * 检测版本
+ */
+function checkVersion () {
   return new Promise (async (resolve,reject) => {
-    try {
-      if (projectRoot !== '.') {
-        fs.mkdirSync(projectName)
+    let webVersion = await latestVersion('61tpl-cli')
+    let localVersion = require('../package.json').version
+    console.log(`本地版本${localVersion}, 最新版本${webVersion}`)
+    let webVersionArr = webVersion.split('.')
+    let localVersionArr = localVersion.split('.')
+    let isNew = webVersionArr.some((item,index) => {
+      return (Number(item) > Number(localVersionArr[index]))
+    })
+    resolve(isNew)
+  })
+}
+/**
+ * 更新脚手架
+ */
+function updateCli () {
+  return new Promise(async(resolve) => {
+    const promptArr = configDefalut.updateNPMPrompt
+    let { npmType } = await inquirer.prompt(promptArr)
+     const spinner = ora(`更新61tpl-cli中`)
+     let status
+    switch (npmType) {
+      case 'npm' : 
+        spinner.start()
+        status = spawn('npm.cmd', ['install','61tpl-cli','-g'])
+        break;
+      case 'cnpm' : 
+        spinner.start()
+        status = spawn('cnpm.cmd', ['install','61tpl-cli','-g'])
+        break;
+      case 'yarn' : 
+        spinner.start()
+        status = spawn('yarn.cmd', ['add','61tpl-cli','-g'])
+        break;
+    }
+    status.stdout.on('data', (data) =>{
+      console.log(data.toString());    
+    });
+    status.on('close', () => {
+      spinner.succeed()
+      console.log(logSymbols.success, chalk.green("更新成功:)"))
+      resolve()
+    })
+  })
+}
+/**
+ * 创建路径
+ */
+function mkdir() {
+  return new Promise(async (resolve, reject) => {
+    const list = glob.sync("*"); // 遍历当前目录
+    if (list.length) {
+      if (
+        list.filter(name => {
+          const fileName = path.resolve(process.cwd(), path.join(".", name));
+          const isDir = fs.statSync(fileName).isDirectory();
+          return name.indexOf(projectName) !== -1 && isDir;
+        }).length !== 0
+      ) {
+        reject(`项目${projectName}已经存在`);
       }
-      let target = await dowload(rootName)
-      console.log(logSymbols.success, chalk.green('模板下载完毕:)'))
+      resolve(projectName);
+    } else if (rootName === projectName) {
+      let answer = await inquirer.prompt([
+        {
+          name: "buildInCurrent",
+          message:
+            "当前目录为空，且目录名称和项目名称相同，是否直接在当前目录下创建新项目",
+          type: "confirm",
+          default: true
+        }
+      ]);
+      resolve(answer.buildInCurrent ? "." : projectName);
+    } else {
+      resolve(projectName);
+    }
+  });
+}
+/**
+ * 模板选择
+ */
+function selectTemplate() {
+  return new Promise((resolve, reject) => {
+    let choices = Object.values(templateConfig).map(item => {
+      return {
+        name: item.name,
+        value: item.value
+      };
+    });
+    let config = {
+      // type: 'checkbox',
+      type: "list",
+      message: "请选择创建项目类型",
+      name: "select",
+      choices: [new inquirer.Separator("模板类型"), ...choices],
+    };
+    inquirer.prompt(config).then(data => {
+      let { select } = data;
+      let { value, git } = templateConfig[select];
+      resolve({
+        git,
+        templateValue: value
+      });
+    });
+  });
+}
+/**
+ * 渲染模板
+ * @param projectRoot 文件路径
+ * @param git 模板的git地址
+ * @param templateValue 选中的模板类型
+ */
+function render(projectRoot, git, templateValue) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (projectRoot !== ".") {
+        fs.mkdirSync(projectName);
+      }
+      let target = await dowload(rootName, git);
+      console.log(logSymbols.success, chalk.green("模板下载完毕:)"));
       let context = {
         name: projectRoot,
         root: projectRoot,
         downloadTemp: target
-      }
-      const promptArr = configDefalut.getDefaultPrompt(context)
-      let answer = await  inquirer.prompt(promptArr)
+      };
+      const promptArr = configDefalut.getDefaultPrompt(context);
+      promptArr.push(...templateConfig[templateValue].options);
+      let answer = await inquirer.prompt(promptArr);
       let generatorParam = {
         metadata: {
           ...answer
         },
         src: context.downloadTemp,
         dest: context.root
-      }
-      await generator(generatorParam)
-      resolve()
+      };
+      await generator(generatorParam);
+      resolve();
     } catch (err) {
-      reject(err)
+      reject(err);
     }
-  })
-  // next
-  //   .then(projectRoot  => {
-  //     if (projectRoot !== '.') {
-  //       fs.mkdirSync(projectName)
-  //     }
-  //     // return dowload(rootName)
-  //     return dowload(rootName)
-  //       .then(target => {
-  //         console.log('模板下载成功')
-  //         return {
-  //           name: projectRoot,
-  //           root: projectRoot,
-  //           downloadTemp: target
-  //         }
-  //       })
-  //       .catch(err => {
-  //         console.log(err)
-  //       })
-  //   })
-  //   .then(context => {
-  //     config = context
-  //     return inquirer.prompt([
-  //       {
-  //         name: 'projectName',
-  //         message: '项目的名称',
-  //         default: context.name
-  //       }, {
-  //         name: 'projectVersion',
-  //         message: '项目的版本号',
-  //         default: '1.0.0'
-  //       }, {
-  //         name: 'projectDescription',
-  //         message: '项目的简介',
-  //         default: `A project named ${context.name}`
-  //       }
-  //     ])
-  //   })
-  //   .then(answers => {
-  //     return {
-  //       metadata: {
-  //         ...answers
-  //       },
-  //       src: config.downloadTemp,
-  //       dest: config.root
-  //     }
-  //   })
-  //   .then(context => {
-  //     // console.log(context)
-  //     return generator(context)
-  //   })
-  //   .then(context => {
-  //     const spinner = ora(`下载依赖中`)
-  //     spinner.start()
-  //     child_process.execSync(`cd ./${config.root} && cnpm i`)
-  //     spinner.succeed()
-  //     console.log(logSymbols.success, chalk.green('创建成功:)'))
-  //   }).catch(error => {
-  //     console.log(logSymbols.error, chalk.red(`创建失败：${error.message}`))
-  //   })  
+  });
 }
-// function go () {
-//   let config
-//   next
-//     .then(projectRoot  => {
-//       if (projectRoot !== '.') {
-//         fs.mkdirSync(projectName)
-//       }
-//       // return dowload(rootName)
-//       return dowload(rootName)
-//         .then(target => {
-//           console.log('模板下载成功')
-//           return {
-//             name: projectRoot,
-//             root: projectRoot,
-//             downloadTemp: target
-//           }
-//         })
-//         .catch(err => {
-//           console.log(err)
-//         })
-//     })
-//     .then(context => {
-//       config = context
-//       return inquirer.prompt([
-//         {
-//           name: 'projectName',
-//           message: '项目的名称',
-//           default: context.name
-//         }, {
-//           name: 'projectVersion',
-//           message: '项目的版本号',
-//           default: '1.0.0'
-//         }, {
-//           name: 'projectDescription',
-//           message: '项目的简介',
-//           default: `A project named ${context.name}`
-//         }
-//       ])
-//     })
-//     .then(answers => {
-//       return {
-//         metadata: {
-//           ...answers
-//         },
-//         src: config.downloadTemp,
-//         dest: config.root
-//       }
-//     })
-//     .then(context => {
-//       // console.log(context)
-//       return generator(context)
-//     })
-//     .then(context => {
-//       const spinner = ora(`下载依赖中`)
-//       spinner.start()
-//       child_process.execSync(`cd ./${config.root} && cnpm i`)
-//       spinner.succeed()
-//       console.log(logSymbols.success, chalk.green('创建成功:)'))
-//     }).catch(error => {
-//       console.log(logSymbols.error, chalk.red(`创建失败：${error.message}`))
-//     })  
-// }
+/**
+ * 模板渲染后执行
+ */
+function afterBuild() {
+  console.log(logSymbols.success, chalk.green("创建成功:)"));
+  console.log("cd ./ && cnpm i");
+}
