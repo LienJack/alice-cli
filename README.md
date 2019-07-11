@@ -1,5 +1,11 @@
 # alice-cli
 由于公司相框使用种类繁多，框架官方提供脚手架配置差异巨大和打包速度较慢，需要一套统一的脚手架
+## 安装
+```
+npm i alice-cli -g
+cnpm i alice-cli -g
+yarn add alice-cli -g
+```
 ## 功能
 ### 项目初始化
 ```
