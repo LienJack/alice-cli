@@ -2,19 +2,19 @@
   "vue": {
     "name": "基于vue2项目",
     "value": "vue",
-    "git": "http://gitlab.61info.com:8190/61tech-live-fe/vue--template.git#template",
+    "git": "https://github.com/LienJack/vue-template-cli.git#template",
     "options": []
   },
   "react": {
     "name": "基于react16项目",
     "value": "react",
-    "git": "http://gitlab.61info.com:8190/61tech-live-fe/react-template.git",
+    "git": "https://github.com/LienJack/template-react.git",
     "options": []
   },
   "electron-react": {
     "name": "基于electron + react项目(todo)",
     "value": "electron-react",
-    "git": "http://gitlab.61info.com:8190/61tech-live-fe/electron-react-template.git",
+    "git": "https://github.com/LienJack/templates-react-electron.git",
     "options": []
   },
  "typscript-react": {
