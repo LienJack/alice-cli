@@ -48,7 +48,7 @@ async function main() {
     afterBuild(); // 构建结束
   } catch (err) {
     console.log(logSymbols.error, chalk.red(`创建失败：${err.message}`));
-    afterError(projectRoot, templateName)
+    // afterError(projectRoot, templateName)
   }
 }
 /**
