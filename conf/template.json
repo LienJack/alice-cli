@@ -1,51 +1,30 @@
 {
   "vue": {
-    "name": "基于vue 2项目",
+    "name": "基于vue2项目",
     "value": "vue",
-    "git": "https://github.com/LienJack/vue-template-cli.git",
-    "options": [
-      {
-        "type": "confirm",
-        "name": "mobile",
-        "message": "是否移动端自适应？"
-      },
-      {
-        "type": "confirm",
-        "name": "weixin",
-        "message": "是否使用配置微信？"
-      },
-      {
-        "type": "confirm",
-        "name": "vux",
-        "message": "是否使用vux？"
-      }
-    ]
+    "git": "http://gitlab.61info.com:8190/61tech-live-fe/vue--template.git#template",
+    "options": []
   },
   "react": {
-    "name": "基于react 16",
+    "name": "基于react16项目",
     "value": "react",
-    "git": "https://github.com/LienJack/template-react.git",
-    "options": [
-      {
-        "type": "confirm",
-        "message": "是否移动端自适应？",
-        "name": "mobile"
-      },
-      {
-        "type": "confirm",
-        "message": "是否使用redux？",
-        "name": "redux"
-      }
-    ]
+    "git": "http://gitlab.61info.com:8190/61tech-live-fe/react-template.git",
+    "options": []
   },
   "electron-react": {
-    "name": "基于electron + react",
+    "name": "基于electron + react项目(todo)",
     "value": "electron-react",
-    "git": "https://github.com/LienJack/templates-react-electron.git",
+    "git": "http://gitlab.61info.com:8190/61tech-live-fe/electron-react-template.git",
     "options": []
   },
  "typscript-react": {
-  "name": "基于typscript + react",
+  "name": "基于typscript + react(todo)",
+  "value": "typscript-react",
+  "git": "https://github.com/cli-template-build/tsx-app.git",
+  "options": []
+ },
+ "rollup": {
+  "name": "使用rollup做构建工具，适用于编写组件或库",
   "value": "typscript-react",
   "git": "https://github.com/cli-template-build/tsx-app.git",
   "options": []

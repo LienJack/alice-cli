@@ -1,18 +1,22 @@
 #!/usr/bin/env node
+// NODE moudle
 const program = require("commander");
 const path = require("path");
 const fs = require("fs");
-const glob = require("glob");
-const dowload = require("../lib/download");
-const generator = require("../lib/generator");
 const inquirer = require("inquirer");
+const glob = require("glob");
 const latestVersion = require("latest-version");
 const chalk = require("chalk");
+const spawn = require("child_process").spawn;
+const ora = require("ora");
 const logSymbols = require("log-symbols");
+const rm = require("rimraf").sync;
+// file
+const dowload = require("../lib/download");
+const generator = require("../lib/generator");
+const CONST = require('../conf/const')
 const templateConfig = require("../conf/template.json");
 const configDefalut = require("../conf/index");
-const spawn = require('child_process').spawn
-const ora = require('ora')
 program.usage("<project-name>").parse(process.argv);
 
 // 根据输入，获取项目名称
@@ -31,72 +35,75 @@ main();
  */
 async function main() {
   try {
-    console.log('检测版本')
-    let isUpate = await checkVersion()
-    console.log(isUpate)
-    if (isUpate) await updateCli()
-    console.log('创建路径')
-    let projectRoot = await mkdir();
-    let { git, templateValue } = await selectTemplate();
-    await render(projectRoot, git, templateValue);
-    afterBuild();
+    console.log("检测版本");
+    let isUpate = await checkVersion(); // 检测版本
+    if (isUpate) await updateCli(); // 更新版本
+    console.log("创建路径");
+    let projectRoot = await checkDir(); // 检测路径
+    makeDir(projectRoot) // 创建路径
+    let { git } = await selectTemplate(); // 模板选择
+    let templateName = await dowload(rootName, git);
+    let customizePrompt = await getCustomizePrompt(templateName, CONST.CUSTOMIZE_PROMPT)
+    await render(projectRoot, templateName, customizePrompt);
+    afterBuild(); // 构建结束
   } catch (err) {
     console.log(logSymbols.error, chalk.red(`创建失败：${err.message}`));
+    afterError(projectRoot, templateName)
   }
 }
 /**
  * 检测版本
  */
-function checkVersion () {
-  return new Promise (async (resolve,reject) => {
-    let webVersion = await latestVersion('61tpl-cli')
-    let localVersion = require('../package.json').version
-    console.log(`本地版本${localVersion}, 最新版本${webVersion}`)
-    let webVersionArr = webVersion.split('.')
-    let localVersionArr = localVersion.split('.')
-    let isNew = webVersionArr.some((item,index) => {
-      return (Number(item) > Number(localVersionArr[index]))
-    })
-    resolve(isNew)
-  })
+function checkVersion() {
+  return new Promise(async (resolve, reject) => {
+    let webVersion = await latestVersion("61tpl-cli");
+    let localVersion = require("../package.json").version;
+    console.log(`本地版本${localVersion}, 最新版本${webVersion}`);
+    let webVersionArr = webVersion.split(".");
+    let localVersionArr = localVersion.split(".");
+    let isNew = webVersionArr.some((item, index) => {
+      return Number(item) > Number(localVersionArr[index]);
+    });
+    resolve(isNew);
+  });
 }
 /**
  * 更新脚手架
  */
-function updateCli () {
-  return new Promise(async(resolve) => {
-    const promptArr = configDefalut.updateNPMPrompt
-    let { npmType } = await inquirer.prompt(promptArr)
-     const spinner = ora(`更新61tpl-cli中`)
-     let status
+function updateCli() {
+  return new Promise(async resolve => {
+    const promptArr = configDefalut.updateNPMPrompt;
+    let { npmType } = await inquirer.prompt(promptArr);
+    const spinner = ora(`更新61tpl-cli中`);
+    let status;
     switch (npmType) {
-      case 'npm' : 
-        spinner.start()
-        status = spawn('npm.cmd', ['install','61tpl-cli','-g'])
+      case "npm":
+        spinner.start();
+        status = spawn("npm.cmd", ["install", "61tpl-cli", "-g"]);
         break;
-      case 'cnpm' : 
-        spinner.start()
-        status = spawn('cnpm.cmd', ['install','61tpl-cli','-g'])
+      case "cnpm":
+        spinner.start();
+        status = spawn("cnpm.cmd", ["install", "61tpl-cli", "-g"]);
         break;
-      case 'yarn' : 
-        spinner.start()
-        status = spawn('yarn.cmd', ['add','61tpl-cli','-g'])
+      case "yarn":
+        spinner.start();
+        status = spawn("yarn.cmd", ["add", "61tpl-cli", "-g"]);
         break;
     }
-    status.stdout.on('data', (data) =>{
-      console.log(data.toString());    
+    status.stdout.on("data", data => {
+      console.log(data.toString());
     });
-    status.on('close', () => {
-      spinner.succeed()
-      console.log(logSymbols.success, chalk.green("更新成功:)"))
-      resolve()
-    })
-  })
+    status.on("close", () => {
+      spinner.succeed();
+      console.log(logSymbols.success, chalk.green("更新成功:)"));
+      resolve();
+    });
+  });
 }
 /**
- * 创建路径
+ * 检测路径
  */
-function mkdir() {
+function checkDir() {
   return new Promise(async (resolve, reject) => {
     const list = glob.sync("*"); // 遍历当前目录
     if (list.length) {
@@ -126,6 +133,13 @@ function mkdir() {
     }
   });
 }
+// 创建路径
+function makeDir (projectRoot) {
+  if (projectRoot !== ".") {
+    fs.mkdirSync(projectName);
+  }
+}
+
 /**
  * 模板选择
  */
@@ -142,39 +156,36 @@ function selectTemplate() {
       type: "list",
       message: "请选择创建项目类型",
       name: "select",
-      choices: [new inquirer.Separator("模板类型"), ...choices],
+      choices: [new inquirer.Separator("模板类型"), ...choices]
     };
     inquirer.prompt(config).then(data => {
       let { select } = data;
       let { value, git } = templateConfig[select];
       resolve({
         git,
-        templateValue: value
+        // templateValue: value
       });
     });
   });
 }
 /**
  * 渲染模板
- * @param projectRoot 文件路径
- * @param git 模板的git地址
- * @param templateValue 选中的模板类型
+ * @param projectRoot 渲染文件路径
+ * @param templateName 模板地址
+ * @param customizePrompt 模板自定义选项
  */
-function render(projectRoot, git, templateValue) {
+function render(projectRoot , templateName, customizePrompt) {
   return new Promise(async (resolve, reject) => {
     try {
-      if (projectRoot !== ".") {
-        fs.mkdirSync(projectName);
-      }
-      let target = await dowload(rootName, git);
-      console.log(logSymbols.success, chalk.green("模板下载完毕:)"));
       let context = {
-        name: projectRoot,
-        root: projectRoot,
-        downloadTemp: target
+        name: projectRoot, // 项目文件名
+        root: projectRoot, // 项目文件路径
+        downloadTemp: templateName // 模板位置
       };
+      // 获取默认配置
       const promptArr = configDefalut.getDefaultPrompt(context);
-      promptArr.push(...templateConfig[templateValue].options);
+      // 添加模板自定义配置
+      promptArr.push(...customizePrompt);
       let answer = await inquirer.prompt(promptArr);
       let generatorParam = {
         metadata: {
@@ -191,9 +202,35 @@ function render(projectRoot, git, templateValue) {
   });
 }
 /**
+ * 
+ * @param target 模板路径
+ * @param fileName 读取文件名
+ */
+function getCustomizePrompt (target, fileName) {
+  return new Promise ((resolve) => {
+    const filePath = path.join(process.cwd(), target, fileName)
+    if(fs.existsSync(filePath)) {
+      console.log('读取模板配置文件')
+      let file = require(filePath)
+      resolve(file)
+    } else {
+      console.log('该文件没有配置文件')
+      resolve([])
+    }
+  })
+}
+/**
  * 模板渲染后执行
  */
 function afterBuild() {
   console.log(logSymbols.success, chalk.green("创建成功:)"));
-  console.log("cd ./ && cnpm i");
+}
+
+function afterError (rootName, templateName) {
+  if(fs.existsSync(rootName)) {
+    rm(rootName)
+  }
+  if (fs.existsSync(templateName)) {
+    rm(templateName)
+  }
 }
