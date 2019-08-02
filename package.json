@@ -1,6 +1,6 @@
 {
   "name": "alice-cli",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "一套快速生成react.js、vue.js、electron、typescript 项目的脚手架",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/LienJack/alice-ui.git"
+    "url": "https://github.com/LienJack/alice-cli.git"
   },
   "author": "lien",
   "license": "ISC",
@@ -37,21 +37,9 @@
     "wrap-ansi": "^6.0.0"
   },
   "homepage": "https://github.com/LienJack/alice-cli#readme",
-  "devDependencies": {
-    "chalk": "^2.4.2",
-    "commander": "^2.20.0",
-    "download-git-repo": "^1.1.0",
-    "ejs": "^2.6.2",
-    "git-clone": "^0.1.0",
-    "glob": "^7.1.4",
-    "handlebars": "^4.1.2",
-    "inquirer": "^6.4.1",
-    "latest-version": "^5.1.0",
-    "log-symbols": "^3.0.0",
-    "metalsmith": "^2.3.0",
-    "minimatch": "^3.0.4",
-    "ora": "^3.4.0",
-    "rimraf": "^2.6.3",
-    "wrap-ansi": "^6.0.0"
-  }
+  "devDependencies": {},
+  "keywords": [
+    "cli",
+    "构建工具"
+  ]
 }

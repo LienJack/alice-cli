@@ -6,13 +6,12 @@ const fs = require("fs");
 const inquirer = require("inquirer");
 const glob = require("glob");
 const latestVersion = require("latest-version");
-const chalk = require("chalk");
 const spawn = require("child_process").spawn;
 const ora = require("ora");
-const logSymbols = require("log-symbols");
 const rm = require("rimraf").sync;
 // file
 const dowload = require("../lib/download");
+const log = require('../utils/log')
 const generator = require("../lib/generator");
 const CONST = require('../conf/const')
 const templateConfig = require("../conf/template.json");
@@ -34,21 +33,23 @@ main();
  * 主进程
  */
 async function main() {
+  let projectRoot, templateName
   try {
     console.log("检测版本");
     let isUpate = await checkVersion(); // 检测版本
     if (isUpate) await updateCli(); // 更新版本
     console.log("创建路径");
-    let projectRoot = await checkDir(); // 检测路径
+    projectRoot = await checkDir(); // 检测路径
     makeDir(projectRoot) // 创建路径
     let { git } = await selectTemplate(); // 模板选择
-    let templateName = await dowload(rootName, git);
+    templateName = await dowload(rootName, git);
     let customizePrompt = await getCustomizePrompt(templateName, CONST.CUSTOMIZE_PROMPT)
     await render(projectRoot, templateName, customizePrompt);
+    deleteCusomizePrompt(projectRoot) // 删除没用的文件
     afterBuild(); // 构建结束
   } catch (err) {
-    console.log(logSymbols.error, chalk.red(`创建失败：${err.message}`));
-    // afterError(projectRoot, templateName)
+    log.error(`创建失败：${err.message}`)
+    afterError(projectRoot, templateName)
   }
 }
 /**
@@ -56,7 +57,7 @@ async function main() {
  */
 function checkVersion() {
   return new Promise(async (resolve, reject) => {
-    let webVersion = await latestVersion("61tpl-cli");
+    let webVersion = await latestVersion("alice-cli");
     let localVersion = require("../package.json").version;
     console.log(`本地版本${localVersion}, 最新版本${webVersion}`);
     let webVersionArr = webVersion.split(".");
@@ -74,20 +75,20 @@ function updateCli() {
   return new Promise(async resolve => {
     const promptArr = configDefalut.updateNPMPrompt;
     let { npmType } = await inquirer.prompt(promptArr);
-    const spinner = ora(`更新61tpl-cli中`);
+    const spinner = ora(`更新alice-cli中`);
     let status;
     switch (npmType) {
       case "npm":
         spinner.start();
-        status = spawn("npm.cmd", ["install", "61tpl-cli", "-g"]);
+        status = spawn("npm.cmd", ["install", "alice-cli", "-g"]);
         break;
       case "cnpm":
         spinner.start();
-        status = spawn("cnpm.cmd", ["install", "61tpl-cli", "-g"]);
+        status = spawn("cnpm.cmd", ["install", "alice-cli", "-g"]);
         break;
       case "yarn":
         spinner.start();
-        status = spawn("yarn.cmd", ["add", "61tpl-cli", "-g"]);
+        status = spawn("yarn.cmd", ["add", "alice-cli", "-g"]);
         break;
     }
     status.stdout.on("data", data => {
@@ -95,7 +96,7 @@ function updateCli() {
     });
     status.on("close", () => {
       spinner.succeed();
-      console.log(logSymbols.success, chalk.green("更新成功:)"));
+      log.succes("更新成功")
       resolve();
     });
   });
@@ -114,6 +115,7 @@ function checkDir() {
           return name.indexOf(projectName) !== -1 && isDir;
         }).length !== 0
       ) {
+        log.error(`项目${projectName}已经存在`)
         reject(`项目${projectName}已经存在`);
       }
       resolve(projectName);
@@ -219,18 +221,30 @@ function getCustomizePrompt (target, fileName) {
     }
   })
 }
+// 删除模板配置文件
+function deleteCusomizePrompt (target) {
+  // 自定义选项模板路径
+  const cusomizePrompt = path.join(process.cwd(), target, CONST.CUSTOMIZE_PROMPT)
+    if(fs.existsSync(cusomizePrompt)) { 
+      rm(cusomizePrompt)
+    }
+  // 忽略文档路径
+  const fileIgnore =  path.join(process.cwd(), target, CONST.FILE_IGNORE)
+  if(fs.existsSync(fileIgnore)) { 
+    rm(fileIgnore)
+  }
+}
 /**
  * 模板渲染后执行
  */
 function afterBuild() {
-  console.log(logSymbols.success, chalk.green("创建成功:)"));
+  log.succes("创建成功:)")
 }
 
-function afterError (rootName, templateName) {
-  if(fs.existsSync(rootName)) {
+function afterError (rootName) {
+  console.log(rootName)
+  if(rootName) {
     rm(rootName)
-  }
-  if (fs.existsSync(templateName)) {
-    rm(templateName)
+    rm(CONST.TEMPLATE_NAME)
   }
 }

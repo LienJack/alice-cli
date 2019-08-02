@@ -25,8 +25,8 @@
  },
  "rollup": {
   "name": "使用rollup做构建工具，适用于编写组件或库",
-  "value": "typscript-react",
-  "git": "https://github.com/cli-template-build/tsx-app.git",
+  "value": "rollup",
+  "git": "https://github.com/LienJack/rollup-template.git",
   "options": []
  },
  "typscript-env": {
