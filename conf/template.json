@@ -8,7 +8,7 @@
   "react": {
     "name": "基于react16项目",
     "value": "react",
-    "git": "https://github.com/LienJack/template-react.git",
+    "git": "https://github.com/LienJack/template-react.git#template",
     "options": []
   },
   "electron-react": {
