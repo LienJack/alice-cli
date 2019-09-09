@@ -18,9 +18,9 @@
     "options": []
   },
  "typscript-react": {
-  "name": "基于typscript + react(todo)",
+  "name": "基于typscript + react",
   "value": "typscript-react",
-  "git": "https://github.com/cli-template-build/tsx-app.git",
+  "git": "https://github.com/LienJack/template-react-ts.git",
   "options": []
  },
  "rollup": {
